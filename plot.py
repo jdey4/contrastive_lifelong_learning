@@ -52,7 +52,7 @@ legendsize = 20
 for ii in range(total_task):
     ax.plot(task_angles[ii:total_task],transfer[ii], linewidth=4, marker='o', label='Task '+str(ii+1))
 
-ax.set_xlabel('Tasks (angle)', fontsize=labelsize)
+ax.set_xlabel('Task angle (radian)', fontsize=labelsize)
 ax.set_ylabel('Transfer', fontsize=labelsize)
 
 ax.set_title(r'$\theta$-xor tasks', fontsize=labelsize+2)
