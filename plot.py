@@ -69,4 +69,6 @@ right_side = ax.spines["right"]
 right_side.set_visible(False)
 top_side = ax.spines["top"]
 top_side.set_visible(False)
+
+plt.savefig('plots/xor_tasks.pdf')
 # %%
