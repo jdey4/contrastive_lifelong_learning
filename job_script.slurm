@@ -7,7 +7,7 @@
 #SBATCH -p gpu1v100 # Queue (partition) name
 #SBATCH -N 1 # Total # of nodes (must be 1 for serial)
 #SBATCH -n 1 # Total # of mpi tasks (should be 1 for serial)
-#SBATCH -t 01:30:00 # Run time (hh:mm:ss)
+#SBATCH -t 12:30:00 # Run time (hh:mm:ss)
 #Put other commands such as module load if needed after this line (All
 commands must follow #SBATCH directives)
 
@@ -15,4 +15,4 @@ commands must follow #SBATCH directives)
 #SBATCH --mail-user=jayanta.dey@utsa.edu
 
 # Launch code...
-python polluted_replay_experiment1.py
+python polluted_replay_experiment.py
