@@ -15,4 +15,5 @@ commands must follow #SBATCH directives)
 #SBATCH --mail-user=jayanta.dey@utsa.edu
 
 # Launch code...
+conda activate contrastive
 python polluted_replay_experiment.py
