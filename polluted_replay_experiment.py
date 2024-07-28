@@ -8,6 +8,11 @@ from tqdm import tqdm
 import pickle
 from sklearn.datasets import make_blobs
 #%%
+def _generate_2d_rotation(theta=0):
+    R = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
+
+    return R
+
 def gaussian_sparse_parity(
     n_samples,
     centers=None,
