@@ -1,8 +1,0 @@
-/var/spool/slurm/d/job04014/slurm_script: line 12: commands: command not found
-Traceback (most recent call last):
-  File "/work/wyw112/contrastive_lifelong_learning/polluted_replay_experiment.py", line 2, in <module>
-    import torch
-  File "/home/wyw112/.local/lib/python3.11/site-packages/torch/__init__.py", line 290, in <module>
-    from torch._C import *  # noqa: F403
-    ^^^^^^^^^^^^^^^^^^^^^^
-ImportError: libcudnn.so.9: cannot open shared object file: No such file or directory
