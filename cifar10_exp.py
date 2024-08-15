@@ -8,7 +8,7 @@ from torch.utils.data import ConcatDataset
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pickle
 
 def unpickle(file):
     import pickle
@@ -248,8 +248,8 @@ class ContrastLoss(nn.Module):
 
 
 
-data_train = unpickle('cifar-100-python/train')
-data_test = unpickle('cifar-100-python/test')
+data_train = unpickle('/work/wyw112/cifar-100-python/train')
+data_test = unpickle('/work/wyw112/cifar-100-python/test')
 
 x1, y1 = data_train[b'data'], data_train[b'fine_labels']
 x2, y2 = data_test[b'data'], data_test[b'fine_labels']
@@ -261,6 +261,7 @@ slots = 10
 shifts = 6
 batch_size = 32
 num_points_per_task = 500
+classes_per_task = 10
 total_task = 10
 latent_dim = 5
 epoch_per_task_encoder = 100
@@ -276,6 +277,7 @@ for shift in range(shifts):
         X_replay = []
         y_replay = []
         single_accuracies = []
+        accuracy_multitask = []
         accuracies = []
         total_task_seen = 0
         heads = {}
@@ -463,6 +465,6 @@ for shift in range(shifts):
         #####
         summary = (accuracy_multitask, single_accuracies)
         
-        with open('result/ConL'+ "_"+ str(shift)+ "_"+ str(slot)+ ".pickle"', 'wb') as f:
+        with open('result/ConL'+ "_"+ str(shift)+ "_"+ str(slot)+ ".pickle", 'wb') as f:
             pickle.dump(summary, f)
         
