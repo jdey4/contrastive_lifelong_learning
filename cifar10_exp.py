@@ -248,8 +248,8 @@ class ContrastLoss(nn.Module):
 
 
 
-data_train = unpickle('/work/wyw112/cifar-100-python/train')
-data_test = unpickle('/work/wyw112/cifar-100-python/test')
+data_train = unpickle('/work/wyw112/data/cifar-100-python/train')
+data_test = unpickle('/work/wyw112/data/cifar-100-python/test')
 
 x1, y1 = data_train[b'data'], data_train[b'fine_labels']
 x2, y2 = data_test[b'data'], data_test[b'fine_labels']
