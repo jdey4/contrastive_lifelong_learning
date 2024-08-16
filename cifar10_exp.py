@@ -9,6 +9,19 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+from torch import from_numpy as tnsr
+
+################
+#check for gpu
+if torch.backends.mps.is_available():
+   mps_device = torch.device("mps")
+   x = torch.ones(1, device=mps_device)
+   print (x)
+else:
+   print ("MPS device not found.")
+
+################
+
 
 def unpickle(file):
     import pickle
@@ -39,7 +52,7 @@ def cross_val_data(data_x, data_y, num_points_per_task, total_task=10, shift=1):
                     ]
                     train_y = y[
                         indx[batch * sample_per_class : (batch + 1) * sample_per_class]
-                    ]
+                    ]%class_per_task
                     test_x = x[
                         indx[
                             batch * test_data_slot
@@ -54,7 +67,7 @@ def cross_val_data(data_x, data_y, num_points_per_task, total_task=10, shift=1):
                             + 500 : (batch + 1) * test_data_slot
                             + 500
                         ]
-                    ]
+                    ]%class_per_task
                 else:
                     train_x = np.concatenate(
                         (
@@ -79,7 +92,7 @@ def cross_val_data(data_x, data_y, num_points_per_task, total_task=10, shift=1):
                                     * sample_per_class : (batch + 1)
                                     * sample_per_class
                                 ]
-                            ],
+                            ]%class_per_task,
                         ),
                         axis=0,
                     )
@@ -106,7 +119,7 @@ def cross_val_data(data_x, data_y, num_points_per_task, total_task=10, shift=1):
                                     + 500 : (batch + 1) * test_data_slot
                                     + 500
                                 ]
-                            ],
+                            ]%class_per_task,
                         ),
                         axis=0,
                     )
@@ -117,8 +130,8 @@ def cross_val_data(data_x, data_y, num_points_per_task, total_task=10, shift=1):
 
 class TaskDataset(Dataset):
     def __init__(self, X, y):
-        self.X = X.copy()
-        self.y = y.copy()
+        self.X = X.clone()
+        self.y = y.clone()
 
     def __getitem__(self, index):
         return self.X[index], self.y[index]
@@ -131,24 +144,24 @@ class TaskDataset(Dataset):
 class Encoder(nn.Module):
     def __init__(self, latent_dim):
         super(Encoder, self).__init__()
-        self.layer1 = nn.Conv2d(in_channels=3, out_channels=16,
+        self.layer1 = nn.Conv2d(in_channels=3, out_channels=16*5,
 			kernel_size=(3, 3))
-        self.bn1 = nn.BatchNorm2d(16)
-        self.layer2 = nn.Conv2d(in_channels=16, out_channels=32,
+        self.bn1 = nn.BatchNorm2d(16*5)
+        self.layer2 = nn.Conv2d(in_channels=16*5, out_channels=32*5,
 			kernel_size=(3, 3), padding='same')
-        self.bn2 = nn.BatchNorm2d(32)
-        self.layer3 = nn.Conv2d(in_channels=32, out_channels=64,
+        self.bn2 = nn.BatchNorm2d(32*5)
+        self.layer3 = nn.Conv2d(in_channels=32*5, out_channels=64*5,
 			kernel_size=(3, 3), padding='same')
-        self.bn3 = nn.BatchNorm2d(64)
-        self.layer4 = nn.Conv2d(in_channels=64, out_channels=128,
+        self.bn3 = nn.BatchNorm2d(64*5)
+        self.layer4 = nn.Conv2d(in_channels=64*5, out_channels=128*5,
 			kernel_size=(3, 3), padding='same')
-        self.bn4 = nn.BatchNorm2d(128)
-        self.layer5 = nn.Conv2d(in_channels=128, out_channels=254,
+        self.bn4 = nn.BatchNorm2d(128*5)
+        self.layer5 = nn.Conv2d(in_channels=128*5, out_channels=254*5,
 			kernel_size=(3, 3), padding='same')
-        self.bn5 = nn.BatchNorm2d(254)
+        self.bn5 = nn.BatchNorm2d(254*5)
         self.flatten = nn.Flatten()
         
-        self.linear1 = nn.Linear(228600, 100)
+        self.linear1 = nn.Linear(228600*5, 100)
         self.bn_linear1 = nn.BatchNorm1d(100)
         self.linear2 = nn.Linear(100, 100)
         self.bn_linear2 = nn.BatchNorm1d(100)
@@ -165,8 +178,9 @@ class Encoder(nn.Module):
         x = F.relu(self.bn4(x))
         x = self.layer5(x)
         x = F.relu(self.bn5(x))
+        #print(x.shape)
         x = self.flatten(x)
-        
+        #print(x.shape)
         x = self.linear1(x)
         x = F.relu(self.bn_linear1(x))
         x = self.linear2(x)
@@ -178,7 +192,7 @@ class Encoder(nn.Module):
 
 
 class Head(nn.Module):
-    def __init__(self, latent_dim, output, nodes=10):
+    def __init__(self, latent_dim, output, nodes=20):
         super(Head, self).__init__()
         self.layer1 = nn.Linear(latent_dim, nodes)
         self.layer2 = nn.Linear(nodes, nodes)
@@ -248,8 +262,11 @@ class ContrastLoss(nn.Module):
 
 
 
+# data_train = unpickle('/Users/jayantadey/contrastive_lifelong_learning_/notebook_experiments/data/cifar-100-python/train')
+# data_test = unpickle('/Users/jayantadey/contrastive_lifelong_learning_/notebook_experiments/data/cifar-100-python/test')
 data_train = unpickle('/work/wyw112/data/cifar-100-python/train')
 data_test = unpickle('/work/wyw112/data/cifar-100-python/test')
+
 
 x1, y1 = data_train[b'data'], data_train[b'fine_labels']
 x2, y2 = data_test[b'data'], data_test[b'fine_labels']
@@ -263,16 +280,18 @@ batch_size = 32
 num_points_per_task = 500
 classes_per_task = 10
 total_task = 10
-latent_dim = 5
+latent_dim = 30
 epoch_per_task_encoder = 100
-epoch_per_task_head = 200
+epoch_per_task_head = 100
 learning_rate_encoder = 3e-4
 learning_rate_head = 5e-2
-margin = 4.5
-replay_const = 7e-2
+margin = 7.5
+replay_const = 7e-1
 
 for shift in range(shifts):
     train_x, train_y, test_x, test_y = cross_val_data(X_, y_, num_points_per_task, total_task=total_task, shift=shift)
+    train_x, train_y, test_x, test_y = tnsr(train_x).float(), tnsr(train_y).float(), tnsr(test_x).float(), tnsr(test_y).float()
+
     for slot in range(slots):
         X_replay = []
         y_replay = []
@@ -293,7 +312,7 @@ for shift in range(shifts):
                 + (slot + 1) * num_points_per_task)
 
             X, y = train_x[idx_task], train_y[idx_task]
-            y = y.reshape(-1,1)
+            y = y.view(-1,1)
             
             train_loader = DataLoader(TaskDataset(X, y), batch_size=batch_size, shuffle=True) 
 
@@ -347,7 +366,7 @@ for shift in range(shifts):
                     running_loss += loss.item()
                     count += 1
         
-            print("Epoch :", epoch+1, "loss :", running_loss/(count+1))
+                print("Epoch :", epoch+1, "loss :", running_loss/(count+1))
                     
         
             ## train head ##
@@ -363,11 +382,12 @@ for shift in range(shifts):
                         embedding = encoder(X__.float())
         
                     predicted_y = heads[task](embedding)
+                    #print(predicted_y, y__[:,0].long())
                     loss_head = criterion_head(predicted_y, y__[:,0].long())
                     loss_head.backward()
                     head_optimizer.step()
                     
-            print(f'head {task+1} Epoch : {epoch+1}, loss: {loss_head:.4f}')
+                print(f'head {task+1} Epoch : {epoch+1}, loss: {loss_head:.4f}')
 
             total_task_seen += 1
 
@@ -380,7 +400,7 @@ for shift in range(shifts):
                     embedding = encoder(x_t)
                     head_predicted_label = heads[kk](embedding).argmax(1).view(-1,1)
     
-                accuracy = torch.sum(y_t.view(-1,1)==head_predicted_label)/10000
+                accuracy = torch.sum(y_t.view(-1,1)==head_predicted_label)/1000
                 print(f'Task {kk+1} accuracy: ', accuracy)
                 acc.append(accuracy)
             
@@ -427,7 +447,7 @@ for shift in range(shifts):
                     running_loss += loss.item()
                     count += 1
         
-            print("Epoch :", epoch+1, "loss :", running_loss/(count+1))
+                print("Epoch :", epoch+1, "loss :", running_loss/(count+1))
                     
         
             ## train head ##
@@ -447,7 +467,7 @@ for shift in range(shifts):
                     loss_head.backward()
                     head_optimizer.step()
                     
-            print(f'head {task+1} Epoch : {epoch+1}, loss: {loss_head:.4f}')
+                print(f'head {task+1} Epoch : {epoch+1}, loss: {loss_head:.4f}')
 
 
             idx_test = range(task * 1000, (task + 1) * 1000)
@@ -457,7 +477,7 @@ for shift in range(shifts):
                 embedding = encoder(x_t)
                 head_predicted_label = heads_single[task](embedding).argmax(1).view(-1,1)
     
-            accuracy = torch.sum(y_t.view(-1,1)==head_predicted_label)/10000
+            accuracy = torch.sum(y_t.view(-1,1)==head_predicted_label)/1000
             print(f'Task {task+1} single task accuracy: ', accuracy)
     
             single_accuracies.append(accuracy)
