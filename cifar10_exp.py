@@ -142,26 +142,26 @@ class TaskDataset(Dataset):
 
 
 class Encoder(nn.Module):
-    def __init__(self, latent_dim):
+    def __init__(self, latent_dim, mul=5):
         super(Encoder, self).__init__()
-        self.layer1 = nn.Conv2d(in_channels=3, out_channels=16*5,
+        self.layer1 = nn.Conv2d(in_channels=3, out_channels=16*mul,
 			kernel_size=(3, 3))
-        self.bn1 = nn.BatchNorm2d(16*5)
-        self.layer2 = nn.Conv2d(in_channels=16*5, out_channels=32*5,
+        self.bn1 = nn.BatchNorm2d(16*mul)
+        self.layer2 = nn.Conv2d(in_channels=16*mul, out_channels=32*mul,
 			kernel_size=(3, 3), padding='same')
-        self.bn2 = nn.BatchNorm2d(32*5)
-        self.layer3 = nn.Conv2d(in_channels=32*5, out_channels=64*5,
+        self.bn2 = nn.BatchNorm2d(32*mul)
+        self.layer3 = nn.Conv2d(in_channels=32*mul, out_channels=64*mul,
 			kernel_size=(3, 3), padding='same')
-        self.bn3 = nn.BatchNorm2d(64*5)
-        self.layer4 = nn.Conv2d(in_channels=64*5, out_channels=128*5,
+        self.bn3 = nn.BatchNorm2d(64*mul)
+        self.layer4 = nn.Conv2d(in_channels=64*mul, out_channels=128*mul,
 			kernel_size=(3, 3), padding='same')
-        self.bn4 = nn.BatchNorm2d(128*5)
-        self.layer5 = nn.Conv2d(in_channels=128*5, out_channels=254*5,
+        self.bn4 = nn.BatchNorm2d(128*mul)
+        self.layer5 = nn.Conv2d(in_channels=128*mul, out_channels=254*mul,
 			kernel_size=(3, 3), padding='same')
-        self.bn5 = nn.BatchNorm2d(254*5)
+        self.bn5 = nn.BatchNorm2d(254*mul)
         self.flatten = nn.Flatten()
         
-        self.linear1 = nn.Linear(228600*5, 100)
+        self.linear1 = nn.Linear(228600*mul, 100)
         self.bn_linear1 = nn.BatchNorm1d(100)
         self.linear2 = nn.Linear(100, 100)
         self.bn_linear2 = nn.BatchNorm1d(100)
@@ -283,10 +283,10 @@ total_task = 10
 latent_dim = 30
 epoch_per_task_encoder = 100
 epoch_per_task_head = 100
-learning_rate_encoder = 3e-4
-learning_rate_head = 5e-2
-margin = 7.5
-replay_const = 7e-1
+learning_rate_encoder = 3e-3
+learning_rate_head = 3e-3
+margin = 4.5
+replay_const = 5e-1
 
 for shift in range(shifts):
     train_x, train_y, test_x, test_y = cross_val_data(X_, y_, num_points_per_task, total_task=total_task, shift=shift)
