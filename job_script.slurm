@@ -4,8 +4,8 @@
 #SBATCH -J myjob # Job Name
 #SBATCH -o myjob.o%j # Name of the stdout output file
 #SBATCH -e myjob.e%j # Name of stderr error file
-#SBATCH -p gpu4v100 --gres=gres/gpu:1 # Queue (partition) name
-#SBATCH -N 5 # Total # of nodes (must be 1 for serial)
+#SBATCH -p gpu4v100 --gres=gres/gpu:2 # Queue (partition) name
+#SBATCH -N 1 # Total # of nodes (must be 1 for serial)
 #SBATCH -n 5 # Total # of mpi tasks (should be 1 for serial)
 #SBATCH -t 24:30:00 # Run time (hh:mm:ss)
 #SBATCH --mail-type=ALL
